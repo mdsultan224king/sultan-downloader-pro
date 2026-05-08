@@ -16,38 +16,43 @@ def download():
         data = request.get_json()
         url = data.get('url')
         if not url:
-            return jsonify({"success": False, "error": "No URL provided"}), 400
+            return jsonify({"success": False, "error": "URL missing"}), 400
 
-        # ইউটিউব ব্লকিং এড়াতে শক্তিশালী সেটিংস
+        # ইউটিউব ব্লকিং এড়ানোর জন্য প্রো-লেভেল সেটিংস
         ydl_opts = {
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
             'ignoreerrors': False,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            # ইউটিউবকে আসল ব্রাউজার হিসেবে দেখানোর জন্য নিচের অংশটি জরুরি
             'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
-                'Sec-Fetch-Mode': 'navigate',
             }
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # ভিডিও তথ্য সংগ্রহ
-            info = ydl.extract_info(url, download=False)
+            # ভিডিওর ডাটা বের করা
+            try:
+                info = ydl.extract_info(url, download=False)
+            except Exception as e:
+                # যদি ইউটিউব ব্লক করে, তবে অন্য একটি পদ্ধতিতে চেষ্টা করা
+                return jsonify({"success": False, "error": "YouTube blocked this request. Try again later."}), 403
             
-            # সরাসরি ডাউনলোড লিঙ্ক খুঁজে বের করা
             video_url = info.get('url')
+            
+            # যদি সরাসরি লিঙ্ক না পাওয়া যায় তবে ফরম্যাট চেক করা
             if not video_url:
                 formats = info.get('formats', [])
                 for f in reversed(formats):
-                    if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
+                    if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
                         video_url = f.get('url')
                         break
 
             if not video_url:
-                return jsonify({"success": False, "error": "Could not extract direct link."}), 404
+                return jsonify({"success": False, "error": "Link extraction failed."}), 404
 
             return jsonify({
                 "success": True,
@@ -59,6 +64,5 @@ def download():
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Render এর জন্য পোর্টের সঠিক কনফিগারেশন
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
