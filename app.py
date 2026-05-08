@@ -1,7 +1,7 @@
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import yt_dlp
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -11,21 +11,16 @@ def home():
     return "Sultan Downloader Server is Active! Developed by Md Sultan Shekh"
 
 @app.route('/download', methods=['POST'])
-def download_video():
-    data = request.json
-    video_url = data.get('url')
-    
-    if not video_url:
-        return jsonify({"success": False, "error": "No URL provided"}), 400
-
+def download():
     try:
-        ydl_opts = {
-            'format': 'best',
-            'quiet': True,
-            'no_warnings': True,
-        }
+        data = request.get_json()
+        url = data.get('url')
+        if not url:
+            return jsonify({"success": False, "error": "No URL"}), 400
+
+        ydl_opts = {'format': 'best', 'quiet': True, 'no_warnings': True}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=False)
+            info = ydl.extract_info(url, download=False)
             return jsonify({
                 "success": True,
                 "title": info.get('title', 'Video'),
