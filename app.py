@@ -8,7 +8,7 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return "Sultan Pro Downloader Server is Active!"
+    return "Sultan Pro Downloader Server is Active! Developed by Md Sultan Shekh"
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -25,7 +25,7 @@ def download():
             'no_warnings': True,
             'nocheckcertificate': True,
             'ignoreerrors': False,
-            # এটি আপনার সার্ভারে থাকা কুকিজ ফাইলটি ব্যবহার করবে
+            # এটি আপনার সার্ভারে থাকা cookies.txt ফাইলটি ব্যবহার করবে
             'cookiefile': 'cookies.txt', 
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
