@@ -18,28 +18,28 @@ def download():
         if not url:
             return jsonify({"success": False, "error": "URL missing"}), 400
 
-        # ইউটিউব ব্লকিং এড়ানোর জন্য উন্নত সেটিংস
+        # ইউটিউব ব্লকিং এড়ানোর জন্য প্রো-লেভেল সেটিংস
         ydl_opts = {
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
             'ignoreerrors': False,
-            # আপনার আপলোড করা কুকিজ ফাইলটি এখানে ব্যবহার করা হচ্ছে
+            # সার্ভারে থাকা কুকিজ ফাইলটি ব্যবহার করা হচ্ছে
             'cookiefile': 'cookies.txt', 
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
             }
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # ভিডিওর ডাটা বের করা
+            # ভিডিওর তথ্য সংগ্রহ করা
             info = ydl.extract_info(url, download=False)
             video_url = info.get('url')
             
-            # সরাসরি লিঙ্ক না পাওয়া গেলে ফরম্যাট চেক করা
+            # সরাসরি লিঙ্ক না পাওয়া গেলে সেরা ফরম্যাটটি খুঁজে বের করা
             if not video_url:
                 formats = info.get('formats', [])
                 for f in reversed(formats):
@@ -48,11 +48,11 @@ def download():
                         break
 
             if not video_url:
-                return jsonify({"success": False, "error": "Link extraction failed."}), 404
+                return jsonify({"success": False, "error": "Could not find a direct download link."}), 404
 
             return jsonify({
                 "success": True,
-                "title": info.get('title', 'Sultan Video'),
+                "title": info.get('title', 'Sultan Pro Video'),
                 "download_link": video_url
             })
 
@@ -60,6 +60,6 @@ def download():
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Render এর সঠিক পোর্টের জন্য এটি প্রয়োজন
+    # Render এর জন্য পোর্টের সঠিক কনফিগারেশন
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
