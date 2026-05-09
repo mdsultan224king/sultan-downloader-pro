@@ -8,7 +8,7 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return "Sultan Pro Downloader Server is Active! Developed by Md Sultan Shekh"
+    return "Sultan Pro Downloader Server is Active!"
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -18,28 +18,27 @@ def download():
         if not url:
             return jsonify({"success": False, "error": "URL missing"}), 400
 
-        # ইউটিউব ব্লকিং এড়ানোর জন্য প্রো-লেভেল সেটিংস
+        # ইউটিউব ব্লকিং এড়ানোর জন্য নতুন শক্তিশালী সেটিংস
         ydl_opts = {
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'ignoreerrors': False,
-            # এটি আপনার সার্ভারে থাকা cookies.txt ফাইলটি ব্যবহার করবে
-            'cookiefile': 'cookies.txt', 
+            # ইউটিউবকে মনে করাবে এটি একটি মোবাইল অ্যাপ থেকে রিকোয়েস্ট আসছে
+            'youtube_include_dash_manifest': False,
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-us,en;q=0.5',
+                'User-Agent': 'com.google.android.youtube/19.11.38 (Linux; U; Android 14; en_US; Pixel 8 Pro) gzip',
             }
         }
         
+        # আপনার আপলোড করা cookies.txt ফাইলটি যদি থেকে থাকে তবে এটি যোগ করুন
+        if os.path.exists('cookies.txt'):
+            ydl_opts['cookiefile'] = 'cookies.txt'
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # ভিডিওর তথ্য বের করা
             info = ydl.extract_info(url, download=False)
             video_url = info.get('url')
             
-            # সরাসরি লিঙ্ক না পাওয়া গেলে সেরা ফরম্যাটটি খুঁজে বের করা
             if not video_url:
                 formats = info.get('formats', [])
                 for f in reversed(formats):
@@ -48,7 +47,7 @@ def download():
                         break
 
             if not video_url:
-                return jsonify({"success": False, "error": "Could not extract download link."}), 404
+                return jsonify({"success": False, "error": "ভিডিও লিঙ্ক পাওয়া যায়নি।"}), 404
 
             return jsonify({
                 "success": True,
