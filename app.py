@@ -8,7 +8,7 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return "Sultan Pro Downloader Server is Active!"
+    return "Sultan Pro Downloader Server is Active! Developed by Md Sultan Shekh"
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -18,27 +18,24 @@ def download():
         if not url:
             return jsonify({"success": False, "error": "URL missing"}), 400
 
-        # ইউটিউব ব্লকিং এড়ানোর জন্য নতুন শক্তিশালী সেটিংস
+        # ইউটিউব ব্লকিং এড়ানোর জন্য প্রো-লেভেল সেটিংস
         ydl_opts = {
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            # ইউটিউবকে মনে করাবে এটি একটি মোবাইল অ্যাপ থেকে রিকোয়েস্ট আসছে
-            'youtube_include_dash_manifest': False,
+            'ignoreerrors': False,
+            'cookiefile': 'cookies.txt', # আপনার দেওয়া কুকিজ ব্যবহার হচ্ছে
             'http_headers': {
-                'User-Agent': 'com.google.android.youtube/19.11.38 (Linux; U; Android 14; en_US; Pixel 8 Pro) gzip',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             }
         }
         
-        # আপনার আপলোড করা cookies.txt ফাইলটি যদি থেকে থাকে তবে এটি যোগ করুন
-        if os.path.exists('cookies.txt'):
-            ydl_opts['cookiefile'] = 'cookies.txt'
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             video_url = info.get('url')
             
+            # সরাসরি লিঙ্ক না পাওয়া গেলে সেরা ফরম্যাটটি খুঁজে বের করা
             if not video_url:
                 formats = info.get('formats', [])
                 for f in reversed(formats):
@@ -47,7 +44,7 @@ def download():
                         break
 
             if not video_url:
-                return jsonify({"success": False, "error": "ভিডিও লিঙ্ক পাওয়া যায়নি।"}), 404
+                return jsonify({"success": False, "error": "Could not extract download link."}), 404
 
             return jsonify({
                 "success": True,
