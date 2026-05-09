@@ -8,7 +8,7 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return "Sultan Downloader Server is Active! Developed by Md Sultan Shekh"
+    return "Sultan Pro Downloader Server is Active!"
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -25,7 +25,7 @@ def download():
             'no_warnings': True,
             'nocheckcertificate': True,
             'ignoreerrors': False,
-            # সার্ভারে থাকা কুকিজ ফাইলটি ব্যবহার করা হচ্ছে
+            # এটি আপনার সার্ভারে থাকা কুকিজ ফাইলটি ব্যবহার করবে
             'cookiefile': 'cookies.txt', 
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -35,7 +35,7 @@ def download():
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # ভিডিওর তথ্য সংগ্রহ করা
+            # ভিডিওর তথ্য বের করা
             info = ydl.extract_info(url, download=False)
             video_url = info.get('url')
             
@@ -48,11 +48,11 @@ def download():
                         break
 
             if not video_url:
-                return jsonify({"success": False, "error": "Could not find a direct download link."}), 404
+                return jsonify({"success": False, "error": "Could not extract download link."}), 404
 
             return jsonify({
                 "success": True,
-                "title": info.get('title', 'Sultan Pro Video'),
+                "title": info.get('title', 'Sultan Video'),
                 "download_link": video_url
             })
 
@@ -60,6 +60,5 @@ def download():
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Render এর জন্য পোর্টের সঠিক কনফিগারেশন
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
